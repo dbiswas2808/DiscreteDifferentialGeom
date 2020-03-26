@@ -25,6 +25,21 @@ class SimplicialComplexOperators {
          * @param {module:Core.Mesh} mesh The input mesh which we index.
          */
         assignElementIndices(mesh) {
+                let vertices = this.mesh.vertices
+                for (let i = 0; i < vertices.length; i++) {
+                        vertices[i].index = i;
+                }
+                
+                let edges = this.mesh.edges
+                for (let i = 0; i < edges.length; ++i) {
+                        edges[i].index = i;
+                }
+
+                let faces = this.mesh.faces
+                for (let i = 0; i < faces.length; ++i) {
+                        faces[i].index = i;
+                }
+
                 // TODO
         }
 
@@ -34,6 +49,12 @@ class SimplicialComplexOperators {
          * @returns {module:LinearAlgebra.SparseMatrix} The vertex-edge adjacency matrix of the given mesh.
          */
         buildVertexEdgeAdjacencyMatrix(mesh) {
+                let tr = new Triplet(this.mesh.vertices.length, this.mesh.edges.length);
+                let halfedges = mesh.halfedges;
+                for (let he of halfedges) {
+                        tr.addEntry(1, he.vertex.index, he.edge.index);
+                }
+                return SparseMatrix.fromTriplet(tr);
                 // TODO
         }
 
@@ -43,6 +64,15 @@ class SimplicialComplexOperators {
          * @returns {module:LinearAlgebra.SparseMatrix} The edge-face adjacency matrix of the given mesh.
          */
         buildEdgeFaceAdjacencyMatrix(mesh) {
+                let tr = new Triplet(this.mesh.edges.length, this.mesh.faces.length);
+                let faces = mesh.faces;
+                for (let f of faces) {
+                        for (let e of f.adjacentEdges()) {
+                                tr.addEntry(1, e.index, f.index);
+                        }
+                }
+                
+                return SparseMatrix.fromTriplet(tr);
                 // TODO
         }
 
@@ -54,6 +84,13 @@ class SimplicialComplexOperators {
          *  vertex i is in the given subset and 0 otherwise
          */
         buildVertexVector(subset) {
+                let vec = DenseMatrix.zeros(this.mesh.vertices.length);
+
+                for (let v of subset.vertices) {
+                        vec.set(v.index) = 1;
+                }
+
+                return vec;
                 // TODO
         }
 
@@ -65,6 +102,13 @@ class SimplicialComplexOperators {
          *  edge i is in the given subset and 0 otherwise
          */
         buildEdgeVector(subset) {
+                let vec = DenseMatrix.zeros(this.mesh.edges.length);
+
+                for (let e of subset.edges) {
+                        vec.set(e.index) = 1;
+                }
+
+                return vec;
                 // TODO
         }
 
@@ -76,6 +120,13 @@ class SimplicialComplexOperators {
          *  face i is in the given subset and 0 otherwise
          */
         buildFaceVector(subset) {
+                let vec = DenseMatrix.zeros(this.mesh.faces.length);
+
+                for (let f of subset.faces) {
+                        vec.set(f.index) = 1;
+                }
+
+                return vec;
                 // TODO
         }
 
