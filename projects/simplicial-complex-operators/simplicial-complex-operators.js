@@ -137,8 +137,36 @@ class SimplicialComplexOperators {
          */
         star(subset) {
                 // TODO
+                newSubset = subset;
+                for (let v of subset.vertices) {
+                        for (let e of v.adjacentEdges()) {
+                                newSubset.addEdge(e);
+                        }
+                        for (let f of v.adjacentFaces()) {
+                                newSubset.addFace(f);
+                        }
+                }
 
-                return subset; // placeholder
+                for (let e of subset.edges) {
+                        for (v of e.vertices()) {
+                                newSubset.addVertex(v);
+                        }
+
+                        for (let f of e.adjacentFaces()) {
+                                newSubset.addFace(f);
+                        }
+                }
+
+                for (let v of subset.faces) {
+                        for (let e of v.adjacentEdges()) {
+                                newSubset.addEdge(e);
+                        }
+                        for (let f of v.adjacentCorners()) {
+                                newSubset.addFace(f);
+                        }
+                }
+
+                return newSubset; // placeholder
         }
 
         /** Returns the closure of a subset.
@@ -147,7 +175,24 @@ class SimplicialComplexOperators {
          * @returns {module:Core.MeshSubset} The closure of the given subset.
          */
         closure(subset) {
-                // TODO
+                newSubset = subset;
+                for (let f of subset.faces) {
+                        for (let e of f.adjacentEdges()) {
+                                newSubset.addEdge(e);
+                        }
+
+                        for (let v of f.adjacentCorners()) {
+                                newSubset.addVertex(v);
+                        }
+                }
+
+                for (let e of subset.edges) {
+                        for (let v of e.vertices()) {
+                                newSubset.addVertex(v);
+                        }
+                }
+
+                // closure of vertex is the vertex itself
 
                 return subset; // placeholder
         }
@@ -158,9 +203,7 @@ class SimplicialComplexOperators {
          * @returns {module:Core.MeshSubset} The link of the given subset.
          */
         link(subset) {
-                // TODO
-
-                return subset; // placeholder
+                return this.closure(this.star(subset)).deleteSubset(this.star(this.closure(subset))); // placeholder
         }
 
         /** Returns true if the given subset is a subcomplex and false otherwise.
@@ -169,7 +212,7 @@ class SimplicialComplexOperators {
          * @returns {boolean} True if the given subset is a subcomplex and false otherwise.
          */
         isComplex(subset) {
-                // TODO
+                return subset.equals(this.closure(subset));
         }
 
         /** Returns the degree if the given subset is a pure subcomplex and -1 otherwise.
@@ -178,7 +221,33 @@ class SimplicialComplexOperators {
          * @returns {number} The degree of the given subset if it is a pure subcomplex and -1 otherwise.
          */
         isPureComplex(subset) {
-                // TODO
+                let newSubset = new MeshSubset();
+                if (subset.faces.size != 0) {
+                        for (let f of subset.faces) {
+                                newSubset.addFace(f);
+                                newSubset.addVertices(f.adjacentCorners());
+                                newSubset.addEdges(f.adjacentEdges());
+                        }
+                        if (subset.equals(newSubset)) {
+                                return 2;
+                        }
+                } else if (subset.edges.size != 0) {
+                        for (let e of subset.edges) {
+                                newSubset.addEdge(e)
+                                newSubset.addVertices(e.vertices());
+                        }
+                        if (subset.equals(newSubset)) {
+                                return 1;
+                        }
+                } else if (subset.vertices.size != 0) { 
+                        newSubset.addVertices(e.vertices());
+                        
+                        if (subset.equals(newSubset)) {
+                                return 0;
+                        }
+                }
+
+                return -1;
         }
 
         /** Returns the boundary of a subset.
@@ -187,8 +256,11 @@ class SimplicialComplexOperators {
          * @returns {module:Core.MeshSubset} The boundary of the given pure subcomplex.
          */
         boundary(subset) {
+                let newSubset = new MeshSubset();
+                for (let e of subset.edges) {
+                        
+                }
                 // TODO
-
                 return subset; // placeholder
         }
 }

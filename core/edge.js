@@ -21,6 +21,33 @@ class Edge {
 	}
 
 	/**
+	 * Gets the adjacent faces of the edge
+	 * @method model:Core.Edge#adjacentFaces
+	 * @returns {array of Face}
+	 */
+	adjacentFaces() {
+		let adajcentFaces = [];
+		if (!this.halfedge.onBoundary) {
+			adajcentFaces.push(this.halfedge.face);
+		}
+
+		if (!this.halfedge.twin.onBoundary) {
+			adajcentFaces.push(this.halfedge.twin.face);
+		}
+
+		return adajcentFaces;
+	}
+
+	/**
+	 * Gets the vertices of the edge
+	 * @method model:Core.Edge#vertices
+	 * @returns {array of vertices}
+	 */
+	vertices() {
+		return [ this.halfedge.vertex, this.halfedge.twin.vertex ];
+	}
+
+	/**
 	 * Defines a string representation for this edge as its index.
 	 * @ignore
 	 * @method module:Core.Edge#toString
