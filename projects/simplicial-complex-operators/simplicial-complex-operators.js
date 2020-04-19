@@ -233,7 +233,7 @@ class SimplicialComplexOperators {
                         }
                 } else if (subset.edges.size != 0) {
                         for (let e of subset.edges) {
-                                newSubset.addEdge(e)
+                                newSubset.addEdge(e);
                                 newSubset.addVertices(e.vertices());
                         }
                         if (subset.equals(newSubset)) {
@@ -257,10 +257,38 @@ class SimplicialComplexOperators {
          */
         boundary(subset) {
                 let newSubset = new MeshSubset();
-                for (let e of subset.edges) {
-                        
+                for (let v of subset.vertices) {
+                        let count = 0;
+                        for (let e of v.adjacentEdges) {
+                                subset.edges.has(e);
+                                count++;
+                                if (count == 2) {
+                                        break;
+                                }
+                        }
+
+                        if (count == 1) {
+                                newSubset.addVertex(v);
+                        }
                 }
+
+                for (let e of subset.edges) {
+                        let count = 0;
+                        for (let f of e.adjacentFaces) {
+                                subset.faces.has(f);
+                                count++;
+                                if (count == 2) {
+                                        break;
+                                }
+
+                        }
+
+                        if (count == 1) {
+                                newSubset.addEdge(e);
+                        }
+                }
+
                 // TODO
-                return subset; // placeholder
+                return this.closure(newSubset); // placeholder
         }
 }
