@@ -87,11 +87,10 @@ class SimplicialComplexOperators {
                 let vec = DenseMatrix.zeros(this.mesh.vertices.length);
 
                 for (let v of subset.vertices) {
-                        vec.set(v.index) = 1;
+                        vec.set(1, v);
                 }
 
                 return vec;
-                // TODO
         }
 
         /** Returns a column vector representing the edges of the
@@ -105,7 +104,7 @@ class SimplicialComplexOperators {
                 let vec = DenseMatrix.zeros(this.mesh.edges.length);
 
                 for (let e of subset.edges) {
-                        vec.set(e.index) = 1;
+                        vec.set(1, e);
                 }
 
                 return vec;
@@ -123,7 +122,7 @@ class SimplicialComplexOperators {
                 let vec = DenseMatrix.zeros(this.mesh.faces.length);
 
                 for (let f of subset.faces) {
-                        vec.set(f.index) = 1;
+                        vec.set(1, f);
                 }
 
                 return vec;

@@ -44,7 +44,10 @@ class Edge {
 	 * @returns {array of vertices}
 	 */
 	vertices() {
-		return [ this.halfedge.vertex, this.halfedge.twin.vertex ];
+		let vertices = [];
+		vertices.push(this.halfedge.vertex);
+		vertices.push(this.halfedge.twin.vertex);
+		return vertices;
 	}
 
 	/**
