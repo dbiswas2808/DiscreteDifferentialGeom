@@ -49,10 +49,10 @@ class SimplicialComplexOperators {
          * @returns {module:LinearAlgebra.SparseMatrix} The vertex-edge adjacency matrix of the given mesh.
          */
         buildVertexEdgeAdjacencyMatrix(mesh) {
-                let tr = new Triplet(this.mesh.vertices.length, this.mesh.edges.length);
+                let tr = new Triplet(this.mesh.edges.length, this.mesh.vertices.length);
                 let halfedges = mesh.halfedges;
                 for (let he of halfedges) {
-                        tr.addEntry(1, he.vertex.index, he.edge.index);
+                        tr.addEntry(1, he.edge.index, he.vertex.index);
                 }
                 return SparseMatrix.fromTriplet(tr);
                 // TODO
@@ -64,11 +64,11 @@ class SimplicialComplexOperators {
          * @returns {module:LinearAlgebra.SparseMatrix} The edge-face adjacency matrix of the given mesh.
          */
         buildEdgeFaceAdjacencyMatrix(mesh) {
-                let tr = new Triplet(this.mesh.edges.length, this.mesh.faces.length);
+                let tr = new Triplet(this.mesh.faces.length, this.mesh.edges.length);
                 let faces = mesh.faces;
                 for (let f of faces) {
                         for (let e of f.adjacentEdges()) {
-                                tr.addEntry(1, e.index, f.index);
+                                tr.addEntry(1, f.index, e.index);
                         }
                 }
                 
@@ -136,32 +136,39 @@ class SimplicialComplexOperators {
          */
         star(subset) {
                 // TODO
-                newSubset = subset;
+                let newSubset = subset;
                 for (let v of subset.vertices) {
-                        for (let e of v.adjacentEdges()) {
-                                newSubset.addEdge(e);
+                        let vertex = this.mesh.vertices[v];
+                        for (let e of vertex.adjacentEdges()) {
+                                newSubset.addEdge(e.index);
                         }
-                        for (let f of v.adjacentFaces()) {
-                                newSubset.addFace(f);
+
+                        // vertex = this.mesh.vertices[v];
+                        // for (let f of vertex.adjacentFaces()) {
+                        //         newSubset.addFace(f.index);
+                        // }
+                }
+
+                for (let e of newSubset.edges) {
+                        let edge = this.mesh.edges[e];
+                        let size = edge.vertices().size;
+                        for (let i = 0; i < size; i++) {
+                                newSubset.addVertex(edge.vertices[i].index);
+                        }
+                        
+                        size = edge.adjacentFaces().size;
+                        for (let i = 0; i < size; i++) {
+                                newSubset.addFace(edge.adjacentFaces()[i].index);
                         }
                 }
 
-                for (let e of subset.edges) {
-                        for (v of e.vertices()) {
-                                newSubset.addVertex(v);
+                for (let f of subset.faces) {
+                        let face = this.mesh.faces[f];
+                        for (let e of face.adjacentEdges()) {
+                                newSubset.addEdge(e.index);
                         }
-
-                        for (let f of e.adjacentFaces()) {
-                                newSubset.addFace(f);
-                        }
-                }
-
-                for (let v of subset.faces) {
-                        for (let e of v.adjacentEdges()) {
-                                newSubset.addEdge(e);
-                        }
-                        for (let f of v.adjacentCorners()) {
-                                newSubset.addFace(f);
+                        for (let v of face.adjacentCorners()) {
+                                newSubset.addVertex(v.index);
                         }
                 }
 
@@ -174,26 +181,26 @@ class SimplicialComplexOperators {
          * @returns {module:Core.MeshSubset} The closure of the given subset.
          */
         closure(subset) {
-                newSubset = subset;
-                for (let f of subset.faces) {
-                        for (let e of f.adjacentEdges()) {
-                                newSubset.addEdge(e);
-                        }
+                let newSubset = new MeshSubset();
+                // newSubset = subset;
+                // for (let f of subset.faces) {
+                //         for (let e of f.adjacentEdges()) {
+                //                 newSubset.addEdge(e);
+                //         }
 
-                        for (let v of f.adjacentCorners()) {
-                                newSubset.addVertex(v);
-                        }
-                }
+                //         for (let v of f.adjacentCorners()) {
+                //                 newSubset.addVertex(v);
+                //         }
+                // }
 
-                for (let e of subset.edges) {
-                        for (let v of e.vertices()) {
-                                newSubset.addVertex(v);
-                        }
-                }
+                // for (let e of subset.edges) {
+                //         newSubset.addVertex(e.halfedge.vertex);
+                //         newSubset.addVertex(e.halfedge.twin.vertex);  
+                // }
 
                 // closure of vertex is the vertex itself
 
-                return subset; // placeholder
+                return newSubset; // placeholder
         }
 
         /** Returns the link of a subset.
@@ -221,30 +228,30 @@ class SimplicialComplexOperators {
          */
         isPureComplex(subset) {
                 let newSubset = new MeshSubset();
-                if (subset.faces.size != 0) {
-                        for (let f of subset.faces) {
-                                newSubset.addFace(f);
-                                newSubset.addVertices(f.adjacentCorners());
-                                newSubset.addEdges(f.adjacentEdges());
-                        }
-                        if (subset.equals(newSubset)) {
-                                return 2;
-                        }
-                } else if (subset.edges.size != 0) {
-                        for (let e of subset.edges) {
-                                newSubset.addEdge(e);
-                                newSubset.addVertices(e.vertices());
-                        }
-                        if (subset.equals(newSubset)) {
-                                return 1;
-                        }
-                } else if (subset.vertices.size != 0) { 
-                        newSubset.addVertices(e.vertices());
+                // if (subset.faces.size != 0) {
+                //         for (let f of subset.faces) {
+                //                 newSubset.addFace(f);
+                //                 newSubset.addVertices(f.adjacentCorners());
+                //                 newSubset.addEdges(f.adjacentEdges());
+                //         }
+                //         if (subset.equals(newSubset)) {
+                //                 return 2;
+                //         }
+                // } else if (subset.edges.size != 0) {
+                //         for (let e of subset.edges) {
+                //                 newSubset.addEdge(e);
+                //                 newSubset.addVertices(e.vertices());
+                //         }
+                //         if (subset.equals(newSubset)) {
+                //                 return 1;
+                //         }
+                // } else if (subset.vertices.size != 0) { 
+                //         newSubset.addVertices(e.vertices());
                         
-                        if (subset.equals(newSubset)) {
-                                return 0;
-                        }
-                }
+                //         if (subset.equals(newSubset)) {
+                //                 return 0;
+                //         }
+                // }
 
                 return -1;
         }
@@ -256,36 +263,36 @@ class SimplicialComplexOperators {
          */
         boundary(subset) {
                 let newSubset = new MeshSubset();
-                for (let v of subset.vertices) {
-                        let count = 0;
-                        for (let e of v.adjacentEdges) {
-                                subset.edges.has(e);
-                                count++;
-                                if (count == 2) {
-                                        break;
-                                }
-                        }
+                // for (let v of subset.vertices) {
+                //         let count = 0;
+                //         for (let e of v.adjacentEdges) {
+                //                 subset.edges.has(e);
+                //                 count++;
+                //                 if (count == 2) {
+                //                         break;
+                //                 }
+                //         }
 
-                        if (count == 1) {
-                                newSubset.addVertex(v);
-                        }
-                }
+                //         if (count == 1) {
+                //                 newSubset.addVertex(v);
+                //         }
+                // }
 
-                for (let e of subset.edges) {
-                        let count = 0;
-                        for (let f of e.adjacentFaces) {
-                                subset.faces.has(f);
-                                count++;
-                                if (count == 2) {
-                                        break;
-                                }
+                // for (let e of subset.edges) {
+                //         let count = 0;
+                //         for (let f of e.adjacentFaces) {
+                //                 subset.faces.has(f);
+                //                 count++;
+                //                 if (count == 2) {
+                //                         break;
+                //                 }
 
-                        }
+                //         }
 
-                        if (count == 1) {
-                                newSubset.addEdge(e);
-                        }
-                }
+                //         if (count == 1) {
+                //                 newSubset.addEdge(e);
+                //         }
+                // }
 
                 // TODO
                 return this.closure(newSubset); // placeholder
