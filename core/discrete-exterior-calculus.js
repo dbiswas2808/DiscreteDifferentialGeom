@@ -14,9 +14,12 @@ class DEC {
 	 * @returns {module:LinearAlgebra.SparseMatrix}
 	 */
 	static buildHodgeStar0Form(geometry, vertexIndex) {
-		// TODO
+		let diagonal = DenseMatrix.zeros(geometry.mesh.vertices.length);
+		for (let vertex of geometry.mesh.vertices) {
+			diagonal.set(geometry.barycentricDualArea(vertex), vertexIndex[vertex]);
+		}
 
-		return SparseMatrix.identity(1, 1); // placeholder
+		return SparseMatrix.diag(diagonal);
 	}
 
 	/**
@@ -27,9 +30,14 @@ class DEC {
 	 * @returns {module:LinearAlgebra.SparseMatrix}
 	 */
 	static buildHodgeStar1Form(geometry, edgeIndex) {
-		// TODO
+		let diagonal = DenseMatrix.zeros(geometry.mesh.edges.length);
+		for (let edge of geometry.mesh.edges) {
+			let he = edge.halfedge;
+			let dual = geometry.cotan(he) + geometry.cotan(he.twin);
+			diagonal.set(dual / 2, edgeIndex[edge]);
+		}
 
-		return SparseMatrix.identity(1, 1); // placeholder
+		return SparseMatrix.diag(diagonal);
 	}
 
 	/**
@@ -41,9 +49,13 @@ class DEC {
 	 * @returns {module:LinearAlgebra.SparseMatrix}
 	 */
 	static buildHodgeStar2Form(geometry, faceIndex) {
-		// TODO
+		let diagonal = DenseMatrix.zeros(geometry.mesh.faces.length);
+		for (let f of geometry.mesh.faces) {
+			let dual = 1 / geometry.area(f);
+			diagonal.set(dual, faceIndex[f]);
+		}
 
-		return SparseMatrix.identity(1, 1); // placeholder
+		return SparseMatrix.diag(diagonal);
 	}
 
 	/**
@@ -55,9 +67,14 @@ class DEC {
 	 * @returns {module:LinearAlgebra.SparseMatrix}
 	 */
 	static buildExteriorDerivative0Form(geometry, edgeIndex, vertexIndex) {
-		// TODO
-
-		return SparseMatrix.identity(1, 1); // placeholder
+		let tr = new Triplet(geometry.mesh.edges.length, geometry.mesh.vertices.length);
+		for (let e of geometry.mesh.edges) {
+			let he = e.halfedge;
+			tr.addEntry(1, edgeIndex[e], vertexIndex[he.vertex]);
+			tr.addEntry(-1, edgeIndex[e], vertexIndex[he.twin.vertex]);
+		}
+		
+		return SparseMatrix.fromTriplet(tr); // placeholder
 	}
 
 	/**
@@ -69,8 +86,15 @@ class DEC {
 	 * @returns {module:LinearAlgebra.SparseMatrix}
 	 */
 	static buildExteriorDerivative1Form(geometry, faceIndex, edgeIndex) {
-		// TODO
+		let tr = new Triplet(geometry.mesh.faces.length, geometry.mesh.edges.length);
+		for (let f of geometry.mesh.faces) {
+			let he = f.halfedge;
+			for (let i = 0; i < 3; i++) {
+				tr.addEntry((he.index < he.twin.index ? 1 : -1), faceIndex[f], edgeIndex[he.edge]);
+				he = he.next;
+			}
+		}
 
-		return SparseMatrix.identity(1, 1); // placeholder
+		return SparseMatrix.fromTriplet(tr); // placeholder
 	}
 }
